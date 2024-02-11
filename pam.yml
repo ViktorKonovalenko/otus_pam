@@ -1,0 +1,41 @@
+---
+- name: 'Делаем ДЗ по PAM'
+  hosts: all
+  become: yes
+  tasks:
+    - name: 'Создаем группу admin'
+      group:
+        name: admin
+        state: present
+    - name: 'Создаем пользователей'
+      user:
+        name: otus
+        shell: /bin/bash
+    - name: 'Создаем пользователей'
+      user:
+        name: otusadm
+        shell: /bin/bash
+        groups: admin
+    - name: 'Добавление пользователя root в группу'
+      user:
+        name: root
+        groups: admin
+    - name: 'Добавление пользователя root в группу'
+      user:
+        name: vagrant
+        groups: admin
+    - name: 'Копирование скрипта'
+      copy:
+        src: ./login.sh
+        dest: /usr/local/bin/login.sh
+        mode: 0755
+    - name: 'Редактирование фалйа sshd'
+      lineinfile:
+        path: /etc/pam.d/sshd
+        regexp: 'auth       include      postlogin'
+        insertbefore: '^#auth       include      postlogin'
+        line: 'auth       required     pam_exec.so /usr/local/bin/login.sh'
+    - name: 'Задаем пароли'
+      shell: echo "Otus2022" | sudo passwd --stdin otusadm && echo "Otus2022" | sudo passwd --stdin otus
+
+
